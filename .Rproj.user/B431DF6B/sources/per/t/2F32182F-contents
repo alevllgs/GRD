@@ -1,0 +1,67 @@
+library(readxl)
+library(tidyverse)
+library(dplyr)
+
+fecha_mes <- "2021-10-01"
+
+censoHM <- read_excel("C:/Users/control.gestion3/OneDrive/BBDD Produccion/REM/CENSO/2021/Censo-hrrio 2021.xlsx",
+                      col_names = FALSE, range = "OCT!B7:P21") # Ojo que no todos los meses tiene el mismo rango
+
+censoFM <- read_excel("C:/Users/control.gestion3/OneDrive/BBDD Produccion/REM/CENSO/2021/Censo ssmn 2021.xlsx",
+                      col_names = FALSE, range = "OCT-UF!B7:I20")
+
+# CENSO HRRIO -------------------------------------------------------------------
+colnames(censoHM)[1] <- "Información estadistica"
+colnames(censoHM)[2] <- "UNIDAD PEDIATRICA UPGA Y UPGB"
+colnames(censoHM)[3] <- "UNIDAD PEDIATRICA UPGC"
+colnames(censoHM)[4] <- "UNIDAD PEDIATRICA UPGD"
+colnames(censoHM)[5] <- "UNIDAD DE ONCOLOGÍA"
+colnames(censoHM)[6] <- "UNIDAD DE TRAUMATOLOGIA CUIDADOS BASICOS"
+colnames(censoHM)[7] <- "UNIDAD DE CIRUGIA GENERAL" 
+colnames(censoHM)[8] <- "UNIDAD DE PLASTICA Y QUEMADO" 
+colnames(censoHM)[9] <- "UNIDAD DE TRAUMATOLOGIA CUIDADOS MEDIOS"
+colnames(censoHM)[10] <- "UNIDAD DE CUIDADO INTENSIVO PEDIATRICO" 
+colnames(censoHM)[11] <- "UNIDAD DE CUIDADO INTERMEDIO PEDIATRICO" 
+colnames(censoHM)[12] <- "UNIDAD DE CUIDADO INTENSIVO CARDIOVASCULAR"
+colnames(censoHM)[13] <- "UNIDAD DE CUIDADO INTERMEDIO CARDIOVASCULAR"
+colnames(censoHM)[14] <- "SALUD MENTAL CORTA ESTADÍA" 
+colnames(censoHM)[15] <- "SALUD MENTAL MEDIANA ESTADÍA"
+censoHM$`SALUD MENTAL MEDIANA ESTADÍA` <- as.double(censoHM$`SALUD MENTAL MEDIANA ESTADÍA`)
+censoHM$`UNIDAD PEDIATRICA UPGD` <- as.double(censoHM$`UNIDAD PEDIATRICA UPGD`)
+censoHM <- censoHM %>% pivot_longer(- `Información estadistica`,
+                                    names_to = "Unidad", 
+                                    values_to = "Total")
+
+censoHM$Fecha <- fecha_mes
+censoHM <- censoHM %>% select(Fecha, Unidad,`Información estadistica`, Total) 
+censoHM$Fecha=as.Date(censoHM$Fecha)
+
+
+Censo_hrrio_BBDD <- read_excel("C:/Users/control.gestion3/OneDrive/BBDD Produccion/REM/CENSO/Censo-hrrio_BBDD.xlsx")
+Censo_hrrio_BBDD <- rbind(censoHM, Censo_hrrio_BBDD)
+openxlsx::write.xlsx(Censo_hrrio_BBDD, "C:/Users/control.gestion3/OneDrive/BBDD Produccion/REM/CENSO/Censo-hrrio_BBDD.xlsx", colNames = TRUE, sheetName = "Censo", overwrite = T)
+
+
+# CENSO UNIDADES FUNCIONALES ----------------------------------------------
+colnames(censoFM)[1] <- "Información estadistica"
+colnames(censoFM)[2] <- "AREA MEDICA PEDIATRICA CUIDADOS BASICOS"
+colnames(censoFM)[3] <- "AREA MEDICA QUIRURGICA PEDIATRICA CUIDADOS BASICOS"
+colnames(censoFM)[4] <- "AREA MEDICA QUIRURGICA PEDIATRICA CUIDADOS MEDIOS"
+colnames(censoFM)[5] <- "AREA MEDICA CUIDADOS INTENSIVOS PEDIATRICOS"
+colnames(censoFM)[6] <- "AREA MEDICA CUIDADOS INTERMEDIOS PEDIATRICOS"
+colnames(censoFM)[7] <- "AREA PSIQUIATRIA INFANTO ADOLESCENTE CORTA ESTADIA" 
+colnames(censoFM)[8] <- "AREA PSIQUIATRIA INFANTO ADOLESCENTE MEDIANA ESTADIA" 
+censoFM <- censoFM %>% pivot_longer(- `Información estadistica`,
+                                    names_to = "UNIDAD FUNCIONAL", 
+                                    values_to = "Total")
+censoFM$Fecha <- fecha_mes
+censoFM <- censoFM %>% select(Fecha, `UNIDAD FUNCIONAL`,`Información estadistica`, Total) 
+censoFM$Fecha=as.Date(censoFM$Fecha)
+
+Censo_FUNCIONAL_BBDD <- read_excel("C:/Users/control.gestion3/OneDrive/BBDD Produccion/REM/CENSO/Censo-FUNCIONAL_BBDD.xlsx")
+Censo_FUNCIONAL_BBDD <- rbind(censoFM, Censo_FUNCIONAL_BBDD)
+openxlsx::write.xlsx(Censo_FUNCIONAL_BBDD, "C:/Users/control.gestion3/OneDrive/BBDD Produccion/REM/CENSO/Censo-FUNCIONAL_BBDD.xlsx", 
+                     colNames = TRUE, sheetName = "Censo", overwrite = T)
+
+rm(censoFM, censoHM, fecha_mes, Censo_FUNCIONAL_BBDD, Censo_hrrio_BBDD)
+
